@@ -1,10 +1,6 @@
 import cv2 as cv
-import time
-
-#manage framerate
-target_fps = 10
-frame_interval = 1.0 / target_fps
-last_time = time.time()
+from screentext import ScreenText
+from fpstracker import FPSTracker
 
 # Kamera öffnen (0 für die erste erkannte Kamera)
 cap = cv.VideoCapture(0)
@@ -12,30 +8,38 @@ cap = cv.VideoCapture(0)
 if not cap.isOpened():
     print("Error: capture not open")
 
+fps_text = ScreenText()
+fpstracker = FPSTracker()
+
 while True:
     ret, frame = cap.read() #ret is a bool for checking output
 
     if not ret:
         print("Error: no frame")
         break
+    
+    #actually pre-process the image
+    frame = cv.resize(frame, (640, 480))#make sure every frame has the same size, otherwise dependent on camera
+    frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)#apply grayscale, color not needed for shape detection, reduces size
+    frame = cv.GaussianBlur(frame, (5, 5), 0)#apply gaussian blur to reduce noise
+    frame = cv.Canny(frame, 50, 150)#detect edges using canny
 
-    text = "fps: " + str(target_fps)
-    position = (10, 20)  # Position for the text (x, y)
-    font = cv.FONT_HERSHEY_SIMPLEX  # Font type
-    font_scale = 0.7  # Font size
-    color = (0, 255, 0)  # Green text (in BGR format)
-    thickness = 1  # Thickness of the text
-    line_type = cv.LINE_AA  # Anti-aliased line type
-
-    current_time = time.time()
-    if current_time > last_time + frame_interval:
-        cv.putText(frame, text, position, font, font_scale, color, thickness, line_type)
-        cv.imshow('Livebild', frame)
-        last_time = time.time()
-
-    #waitkey checks for key press and returns key id
-    #&0xFF only takes last two bytes
-    #ord(q) gives ASCII value of q
+    #implement frames-per-second counter
+    fps = fpstracker.updateFPS()
+    fps_text.set_Text(f"FPS: {fps:.0f}")
+    fps_text.set_Position((10,20))
+    fps_text.set_Color((255,255,255))
+    fps_frame = fps_text.showText(frame)
+    
+    #implement MLM
+    
+    #if cup is found, get cup coordinates
+    
+    #pass coordinate to Arduino
+    
+    #show pre-processed frame
+    cv.imshow('Livebild', fps_frame)
+    
     if cv.waitKey(10) & 0xFF == ord('q'): 
         break
 

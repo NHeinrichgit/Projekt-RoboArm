@@ -11,6 +11,9 @@ if not cap.isOpened():
 fps_text = ScreenText()
 fpstracker = FPSTracker()
 
+image_dir = r'/mnt/common/THNuernberg/Projekt-RoboArm/Bilderkennung/trainingimages/'
+imagecounter = 0
+
 while True:
     ret, frame = cap.read() #ret is a bool for checking output
 
@@ -21,15 +24,16 @@ while True:
     #actually pre-process the image
     frame = cv.resize(frame, (640, 480))#make sure every frame has the same size, otherwise dependent on camera
     frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)#apply grayscale, color not needed for shape detection, reduces size
-    frame = cv.GaussianBlur(frame, (5, 5), 0)#apply gaussian blur to reduce noise
-    frame = cv.Canny(frame, 50, 150)#detect edges using canny
-
+    
+    imagecounter += 1
+    filename = "trainingimg"+str(imagecounter)+".jpg"
+    cv.imwrite(image_dir + filename, frame)
     #implement frames-per-second counter
-    fps = fpstracker.updateFPS()
+    """ fps = fpstracker.updateFPS()
     fps_text.set_Text(f"FPS: {fps:.0f}")
     fps_text.set_Position((10,20))
     fps_text.set_Color((255,255,255))
-    fps_frame = fps_text.showText(frame)
+    fps_frame = fps_text.showText(frame) """
     
     #implement MLM
     
@@ -38,7 +42,7 @@ while True:
     #pass coordinate to Arduino
     
     #show pre-processed frame
-    cv.imshow('Livebild', fps_frame)
+    cv.imshow('Livebild', frame)
     
     if cv.waitKey(10) & 0xFF == ord('q'): 
         break

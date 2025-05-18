@@ -1,7 +1,8 @@
+import os
 import cv2 as cv
 from screentext import ScreenText
 from fpstracker import FPSTracker
-
+from CNN_Model import importall as RCNN
 # Kamera öffnen (0 für die erste erkannte Kamera)
 cap = cv.VideoCapture(0)
 
@@ -11,8 +12,11 @@ if not cap.isOpened():
 fps_text = ScreenText()
 fpstracker = FPSTracker()
 
-image_dir = r'/mnt/common/THNuernberg/Projekt-RoboArm/Bilderkennung/trainingimages/'
+current_dir = os.getcwd()
+image_dir = os.path.join(current_dir, "trainingimages/")
 imagecounter = 0
+
+model = RCNN.initmodel()
 
 while True:
     ret, frame = cap.read() #ret is a bool for checking output
@@ -36,7 +40,9 @@ while True:
     fps_frame = fps_text.showText(frame) """
     
     #implement MLM
-    
+    position = RCNN.checkimg(model, frame)
+    if position[0] == 1:
+        break
     #if cup is found, get cup coordinates
     
     #pass coordinate to Arduino

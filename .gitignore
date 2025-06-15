@@ -2,4 +2,8 @@ Bilderkennung/venv/
 Bilderkennung/PyTorch_Tutorial/
 Bilderkennung/trainingimages/
 Bilderkennung/CNN_Model/dataset/
-Bilderkennung/Custom Workflow Object Detection.v4i.coco.zip
+Bilderkennung/Custom_Workflow_Object_Detection.v4i.coco.zip
+Bilderkennung/CNN_Model/fasterrcnn_cup_model.pth
+Bilderkennung/fasterrcnn_cup_model.zip
+Bilderkennung/__pycache__/
+Bilderkennung/CNN_Model/__pycache__/

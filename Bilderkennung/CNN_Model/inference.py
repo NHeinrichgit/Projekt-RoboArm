@@ -1,19 +1,25 @@
 import torch
-from model import get_model, get_transform
-from dataset import CupDataset
-from torch.utils.data import DataLoader
+from model import get_model
+import torchvision.transforms as T
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+transform = T.Compose([
+    T.ToTensor(),
+])
 
-num_classes = 2
-model = get_model(num_classes)
-model.load_state_dict("fasterrcnn_cup_model.pth")
-model.to(device)
-model.eval()
+def initmodel():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-someimagefile = 0 # get this from opencv
+    num_classes = 4
+    model = get_model(num_classes)
+    state_dict = torch.load("fasterrcnn_cup_model.pth", map_location=device)
+    model.load_state_dict(state_dict)
+    model.to(device)
+    model.eval()
+    return model
 
-with torch.no_grad():
-    img = someimagefile
-    prediction = model([img.to(device)])
-    print(prediction)
+def checkimg(model, imagefile):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    with torch.no_grad():
+        imagetensor = transform(imagefile)
+        prediction = model([imagetensor.to(device)])
+        return prediction

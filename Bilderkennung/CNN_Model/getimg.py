@@ -91,8 +91,10 @@ while True:
             #get coordinates of the center of the first cup
             xmid = int(objects[0].x1) + 0.5*(objects[0].x2-objects[0].x1)
             ymid = int(objects[0].y1) + 0.5*(objects[0].y2-objects[0].y1)
-            arduino.passtoSerial(xmid, ymid)
+            arduino.passtoSerial(int(xmid), int(ymid))
             waitingforUNO = True
+        else:
+            objects.clear()
     else:
         if arduino.checkresponse()!=None:
             waitingforUNO = False

@@ -4,7 +4,7 @@ from screentext import ScreenText
 from fpstracker import FPSTracker
 from serialcomm import comm
 import inference as RCNN
-
+from capthread import VideoCaptureAsync
 class Object():
     def __init__(self, x1, y1, x2, y2, label, confidence):
         self.x1 = x1
@@ -37,28 +37,33 @@ def update_fps():
     fps_text.showText(frame)
 
 #get arduino
-arduino = comm('COM3')
-
+arduino = comm("COM5")
 fps_text = ScreenText()
 fpstracker = FPSTracker()
-model = RCNN.initmodel()
+try:
+    model = RCNN.initmodel()
+except FileNotFoundError:
+    print("weights file not found, place in CNN_Model/ folder")
+    exit()
+
 objects = []
 waitingforUNO = False
 runtime = 0
 score_threshold = 0.9
 
 # Kamera öffnen (0 für die erste erkannte Kamera)
-cap = cv.VideoCapture(0)
+cap_thread = VideoCaptureAsync(0)
 
-if not cap.isOpened():
+if not cap_thread.cap.isOpened():
     print("Error: capture not open")
 
 while True:
-    ret, frame = cap.read() #ret is a bool for checking output
+    ret, frame = cap_thread.read()
 
     if not ret:
         print("Error: no frame")
-        break
+        continue
+        #break
     
     #pre-process the image
     frame = cv.resize(frame, (640, 480))#make sure every frame has the same size, otherwise dependent on camera
@@ -69,8 +74,8 @@ while True:
         start_time = time.time()
         output = RCNN.checkimg(model, frame)
         runtime = time.time() - start_time
-        print(runtime)
-        print(output)
+        print(f"Time: {runtime}")
+        print(f"Output:\n{output}")
         prediction = output[0]
         
         #if cup is found, get cup coordinates
@@ -78,7 +83,7 @@ while True:
             if score.item()>=score_threshold:
                 x1, y1, x2, y2 = box.int().tolist()
                 objects.append(Object(x1, y1, x2, y2, label.item(), score.item()))
-                text = objects[len(objects)].str()
+                text = objects[len(objects)-1].__str__()
                 drawvisuals(frame, x1, y1, x2, y2, text)
         
         #pass coordinate to Arduino if no hand in img
@@ -95,14 +100,9 @@ while True:
 
     #show pre-processed frame
     cv.imshow('Livebild', frame)
-    
-    #go through all backlog frames
-    for _ in range(int(30*runtime)):
-        ret, frame = cap.read()
-    runtime = 0
-
+            
     if cv.waitKey(10) & 0xFF == ord('q'): 
         break
 
-cap.release()
+cap_thread.stop()
 cv.destroyAllWindows()

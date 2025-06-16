@@ -4,7 +4,10 @@ import struct
 
 class comm:
     def __init__(self, port):
-        self.arduino = serial.Serial(port, 9600)
+        try:
+            self.arduino = serial.Serial(port, 9600)
+        except serial.SerialException:
+            print("couldn't open port")
         time.sleep(2)
 
     def passtoSerial(self, xcord, ycord):
